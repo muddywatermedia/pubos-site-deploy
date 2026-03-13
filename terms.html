@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PubOS — The Publisher Operating System</title>
+  <meta name="description" content="PubOS is an edge-native operating system for publisher networks. 7 intelligent pillars. 8 autonomous agents. 161 API endpoints. One command center.">
+  <meta property="og:title" content="PubOS — The Publisher Operating System">
+  <meta property="og:description" content="Run your entire publisher network from one edge-native platform. Content, monetization, audience, traffic, identity, design, compliance — all autonomous.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://pubos.ai">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0f1c;
+      --bg-card: #111827;
+      --bg-card-hover: #1a2332;
+      --bg-elevated: #1e293b;
+      --text: #f1f5f9;
+      --text-2: #94a3b8;
+      --text-3: #64748b;
+      --accent: #3b82f6;
+      --accent-2: #06b6d4;
+      --green: #22c55e;
+      --orange: #f97316;
+      --purple: #a855f7;
+      --rose: #f43f5e;
+      --border: rgba(148,163,184,0.12);
+      --glow: rgba(59,130,246,0.15);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+    a { color: inherit; text-decoration: none; }
+    code, .mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Nav */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 1rem 2rem; backdrop-filter: blur(24px); background: rgba(10,15,28,0.8); border-bottom: 1px solid var(--border); }
+    .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em; }
+    .logo-pub { color: var(--accent); }
+    .logo-os { color: var(--accent-2); }
+    .nav-links { display: flex; gap: 2rem; align-items: center; }
+    .nav-links a { color: var(--text-2); font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text); }
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.5rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; transition: all 0.2s; cursor: pointer; border: none; font-family: 'Inter', sans-serif; }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: #2563eb; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(59,130,246,0.4); }
+    .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-lg { padding: 0.875rem 2.25rem; font-size: 1rem; border-radius: 10px; }
+
+    /* Hero */
+    .hero { padding: 11rem 2rem 6rem; text-align: center; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: 40px; left: 50%; transform: translateX(-50%); width: 1000px; height: 600px; background: radial-gradient(ellipse, rgba(59,130,246,0.08) 0%, rgba(6,182,212,0.04) 40%, transparent 70%); pointer-events: none; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.4rem 1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 100px; font-size: 0.8rem; color: var(--text-2); margin-bottom: 2rem; }
+    .hero-badge .dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .hero h1 { font-size: clamp(2.75rem, 6vw, 4.25rem); font-weight: 900; letter-spacing: -0.04em; line-height: 1.08; max-width: 800px; margin: 0 auto 1.5rem; }
+    .hero h1 .grad { background: linear-gradient(135deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero p { font-size: 1.15rem; color: var(--text-2); max-width: 600px; margin: 0 auto 2.5rem; line-height: 1.7; }
+    .hero-cta { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .hero-stats { display: flex; gap: 3rem; justify-content: center; margin-top: 4rem; flex-wrap: wrap; }
+    .hero-stat { text-align: center; }
+    .hero-stat .num { font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; }
+    .hero-stat .num.blue { color: var(--accent); }
+    .hero-stat .num.cyan { color: var(--accent-2); }
+    .hero-stat .num.green { color: var(--green); }
+    .hero-stat .num.purple { color: var(--purple); }
+    .hero-stat .label { font-size: 0.8rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0.25rem; }
+
+    /* Sections */
+    section { padding: 6rem 2rem; }
+    .section-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent); margin-bottom: 1rem; }
+    .section-title { font-size: 2.25rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem; }
+    .section-desc { font-size: 1.05rem; color: var(--text-2); max-width: 600px; line-height: 1.7; }
+
+    /* Pillars */
+    .pillars-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; margin-top: 3rem; }
+    .pillar-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; transition: all 0.25s; position: relative; overflow: hidden; }
+    .pillar-card:hover { border-color: rgba(59,130,246,0.3); background: var(--bg-card-hover); transform: translateY(-2px); }
+    .pillar-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.25rem; }
+    .pillar-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .pillar-card p { font-size: 0.9rem; color: var(--text-2); line-height: 1.6; }
+    .pillar-tag { display: inline-flex; align-items: center; gap: 0.3rem; margin-top: 1rem; font-size: 0.75rem; color: var(--text-3); padding: 0.25rem 0.75rem; background: rgba(255,255,255,0.04); border-radius: 100px; }
+    .pi-content .pillar-icon { background: rgba(59,130,246,0.12); color: var(--accent); }
+    .pi-monetization .pillar-icon { background: rgba(34,197,94,0.12); color: var(--green); }
+    .pi-traffic .pillar-icon { background: rgba(249,115,22,0.12); color: var(--orange); }
+    .pi-identity .pillar-icon { background: rgba(168,85,247,0.12); color: var(--purple); }
+    .pi-design .pillar-icon { background: rgba(6,182,212,0.12); color: var(--accent-2); }
+    .pi-audience .pillar-icon { background: rgba(244,63,94,0.12); color: var(--rose); }
+    .pi-compliance .pillar-icon { background: rgba(148,163,184,0.12); color: var(--text-2); }
+
+    /* Agents */
+    .agents-section { background: linear-gradient(180deg, var(--bg) 0%, #0d1424 100%); }
+    .agents-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-top: 3rem; }
+    .agent-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; transition: all 0.25s; }
+    .agent-card:hover { border-color: rgba(6,182,212,0.3); }
+    .agent-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+    .agent-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .agent-card h4 { font-size: 0.95rem; font-weight: 700; }
+    .agent-card p { font-size: 0.82rem; color: var(--text-2); line-height: 1.5; }
+    .agent-endpoints { margin-top: 0.75rem; font-size: 0.7rem; color: var(--text-3); }
+    .agent-endpoints span { color: var(--accent-2); font-weight: 600; }
+
+    /* How It Works */
+    .how-section { border-top: 1px solid var(--border); }
+    .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 3rem; }
+    .how-step { text-align: center; padding: 2rem; }
+    .how-num { font-size: 3rem; font-weight: 900; color: var(--accent); opacity: 0.3; margin-bottom: 1rem; }
+    .how-step h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem; }
+    .how-step p { font-size: 0.9rem; color: var(--text-2); line-height: 1.6; }
+
+    /* Architecture */
+    .arch-section { border-top: 1px solid var(--border); }
+    .arch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-top: 3rem; align-items: start; }
+    .arch-list { list-style: none; }
+    .arch-list li { padding: 1rem 0; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 1rem; }
+    .arch-list li:last-child { border-bottom: none; }
+    .arch-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-2); min-width: 80px; padding-top: 0.1rem; }
+    .arch-val { font-size: 0.9rem; color: var(--text-2); }
+    .arch-val strong { color: var(--text); font-weight: 600; }
+    .arch-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; }
+    .arch-box h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--accent-2); }
+    .arch-endpoint { display: flex; gap: 0.75rem; align-items: baseline; padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .arch-endpoint:last-child { border-bottom: none; }
+    .method { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; font-weight: 600; padding: 0.15rem 0.4rem; border-radius: 4px; text-transform: uppercase; }
+    .method-get { background: rgba(34,197,94,0.15); color: var(--green); }
+    .method-post { background: rgba(59,130,246,0.15); color: var(--accent); }
+    .arch-endpoint .path { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-2); }
+
+    /* Pricing */
+    .pricing-section { background: linear-gradient(180deg, #0d1424 0%, var(--bg) 100%); }
+    .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 3rem; }
+    .price-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem 2rem; position: relative; }
+    .price-card.featured { border-color: var(--accent); box-shadow: 0 0 40px rgba(59,130,246,0.1); }
+    .price-card .tier { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); }
+    .price-card .amount { font-size: 2.5rem; font-weight: 800; margin: 0.5rem 0; letter-spacing: -0.03em; }
+    .price-card .amount small { font-size: 1rem; font-weight: 400; color: var(--text-3); }
+    .price-card .desc { font-size: 0.85rem; color: var(--text-2); margin-bottom: 1.5rem; }
+    .price-features { list-style: none; margin-bottom: 2rem; }
+    .price-features li { font-size: 0.85rem; color: var(--text-2); padding: 0.4rem 0; display: flex; gap: 0.5rem; align-items: flex-start; }
+    .price-features li::before { content: '\2192'; color: var(--accent); font-weight: 600; flex-shrink: 0; }
+    .price-card .btn { width: 100%; justify-content: center; }
+
+    /* CTA */
+    .cta-section { padding: 6rem 2rem; text-align: center; background: linear-gradient(180deg, var(--bg) 0%, #0d1424 100%); }
+    .cta-section h2 { font-size: 2.5rem; font-weight: 900; letter-spacing: -0.03em; margin-bottom: 1rem; }
+    .cta-section p { color: var(--text-2); font-size: 1.1rem; max-width: 500px; margin: 0 auto 2rem; }
+
+    /* Footer */
+    footer { padding: 3rem 2rem; border-top: 1px solid var(--border); text-align: center; font-size: 0.8rem; color: var(--text-3); }
+
+    @media (max-width: 768px) {
+      .nav-links a:not(.btn) { display: none; }
+      .hero { padding: 8rem 1.5rem 4rem; }
+      .hero-stats { gap: 1.5rem; }
+      .pricing-grid, .how-grid { grid-template-columns: 1fr; }
+      .arch-grid { grid-template-columns: 1fr; }
+      .pillars-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo"><span class="logo-pub">Pub</span><span class="logo-os">OS</span></a>
+    <div class="nav-links">
+      <a href="#pillars">Pillars</a>
+      <a href="#agents">Agents</a>
+      <a href="#how">How It Works</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#pricing">Pricing</a>
+      <a href="/login" class="btn btn-primary">Sign In</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge"><span class="dot"></span> Private Beta — Now Live</div>
+    <h1>The Operating System for <span class="grad">Publisher Networks</span></h1>
+    <p>7 intelligent pillars. 8 autonomous agents. One command center. PubOS manages your entire publisher network at the edge — content, monetization, audiences, compliance — so you can scale without headcount.</p>
+    <div class="hero-cta">
+      <a href="#pillars" class="btn btn-primary btn-lg">See the Platform &rarr;</a>
+      <a href="/login" class="btn btn-outline btn-lg">Sign In</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num blue">7</div><div class="label">Pillars</div></div>
+      <div class="hero-stat"><div class="num cyan">8</div><div class="label">Agents</div></div>
+      <div class="hero-stat"><div class="num green">161</div><div class="label">API Endpoints</div></div>
+      <div class="hero-stat"><div class="num purple">&lt;$5</div><div class="label">/mo Infra</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="pillars">
+  <div class="container">
+    <div class="section-label">The 7 Pillars</div>
+    <div class="section-title">Every dimension of publishing, systematized</div>
+    <p class="section-desc">Each pillar is a structured configuration layer in PubOS. Together they define everything about a site — from what it says to how it makes money.</p>
+    <div class="pillars-grid">
+      <div class="pillar-card pi-content">
+        <div class="pillar-icon">&#128221;</div>
+        <h3>Content</h3>
+        <p>AI-generated articles, editorial workflows, cross-site recirculation, content scheduling, and template-driven bulk generation. Your content engine runs on autopilot.</p>
+        <div class="pillar-tag"><span>77 endpoints</span> &middot; content-api + content-gen</div>
+      </div>
+      <div class="pillar-card pi-monetization">
+        <div class="pillar-icon">&#128176;</div>
+        <h3>Monetization</h3>
+        <p>Ad waterfall management, in-house ad server with zone/campaign/creative CRUD, conversion tracking, affiliate partner management, and revenue attribution across your network.</p>
+        <div class="pillar-tag"><span>34 endpoints</span> &middot; adserver + conversions</div>
+      </div>
+      <div class="pillar-card pi-traffic">
+        <div class="pillar-icon">&#128200;</div>
+        <h3>Traffic</h3>
+        <p>Cross-site recirculation engine with A/B experiments, social distribution to 5+ platforms, push campaigns, and email sequences that keep visitors coming back.</p>
+        <div class="pillar-tag"><span>32 endpoints</span> &middot; social + push</div>
+      </div>
+      <div class="pillar-card pi-identity">
+        <div class="pillar-icon">&#127991;</div>
+        <h3>Identity</h3>
+        <p>Site name, tagline, vertical, sub-topics, contact info, and brand positioning — all stored as structured config. One API call configures an entire site's identity.</p>
+        <div class="pillar-tag">site-config pillar &middot; D1 storage</div>
+      </div>
+      <div class="pillar-card pi-design">
+        <div class="pillar-icon">&#127912;</div>
+        <h3>Design</h3>
+        <p>Theme colors, typography, layout templates — all driven by config, not code. The site renderer reads design pillars and builds responsive HTML on the edge.</p>
+        <div class="pillar-tag">site-config pillar &middot; edge rendering</div>
+      </div>
+      <div class="pillar-card pi-audience">
+        <div class="pillar-icon">&#128101;</div>
+        <h3>Audience</h3>
+        <p>Push subscribers, email lists, subscriber segmentation, double opt-in flows, campaign analytics. Build owned audiences that compound across your network.</p>
+        <div class="pillar-tag"><span>44 endpoints</span> &middot; email + push</div>
+      </div>
+      <div class="pillar-card pi-compliance">
+        <div class="pillar-icon">&#128737;</div>
+        <h3>Compliance</h3>
+        <p>Auto-generated Privacy Policy, Terms of Service, About, and Contact pages. Ad network-ready. GDPR-aware. Every site meets ad network requirements out of the box.</p>
+        <div class="pillar-tag">site-renderer &middot; auto-generated</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="agents" class="agents-section">
+  <div class="container">
+    <div class="section-label">The 8 Agents</div>
+    <div class="section-title">Autonomous services running at the edge</div>
+    <p class="section-desc">Each agent is an edge worker — deployed globally, running 24/7, responding in under 50ms. No servers. No containers. No cold starts.</p>
+    <div class="agents-grid">
+      <div class="agent-card">
+        <div class="agent-header"><div class="agent-dot" style="background:var(--accent)"></div><h4>Content API</h4></div>
+        <p>Articles, feeds, recirculation, metrics, site config. The brain of your content operations.</p>
+        <div class="agent-endpoints"><span>41</span> endpoints &middot; CRUD + analytics + recirc engine</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-header"><div class="agent-dot" style="background:var(--purple)"></div><h4>Content Gen</h4></div>
+        <p>AI-powered article generation with templates, scheduling, credit system, and approval workflows.</p>
+        <div class="agent-endpoints"><span>36</span> endpoints &middot; bulk gen + scheduling + credits</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-header"><div class="agent-dot" style="background:var(--green)"></div><h4>Ad Server</h4></div>
+        <p>In-house programmatic ads. Campaigns, creatives, zones, click tracking, real-time analytics.</p>
+        <div class="agent-endpoints"><span>21</span> endpoints &middot; serve + track + analyze</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-header"><div class="agent-dot" style="background:var(--rose)"></div><h4>Email</h4></div>
+        <p>Full email marketing platform. Lists, sequences, campaigns, templates, subscriber management.</p>
+        <div class="agent-endpoints"><span>31</span> endpoints &middot; send + track + automate</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-header"><div class="agent-dot" style="background:var(--orange)"></div><h4>Push</h4></div>
+        <p>Web push notifications. VAPID keys, service workers, campaign delivery, engagement tracking.</p>
+        <div class="agent-endpoints"><span>13</span> endpoints &middot; subscribe + send + track</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-header"><div class="agent-dot" style="background:var(--accent-2)"></div><h4>Social</h4></div>
+        <p>Multi-platform social distribution. Auto-post on publish, AI captions, distribution rules.</p>
+        <div class="agent-endpoints"><span>19</span> endpoints &middot; accounts + posts + rules</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-header"><div class="agent-dot" style="background:#eab308"></div><h4>Conversions</h4></div>
+        <p>Affiliate tracking, partner management, postback handling, conversion attribution.</p>
+        <div class="agent-endpoints"><span>13</span> endpoints &middot; clicks + conversions + partners</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-header"><div class="agent-dot" style="background:var(--text-3)"></div><h4>Site Renderer</h4></div>
+        <p>Edge-rendered HTML. SEO-optimized pages, sitemaps, RSS feeds, structured data. No WordPress needed.</p>
+        <div class="agent-endpoints"><span>7</span> endpoints &middot; render + SEO + feeds</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how" class="how-section">
+  <div class="container">
+    <div class="section-label">How It Works</div>
+    <div class="section-title">From zero to publishing network in 3 steps</div>
+    <p class="section-desc">Connect your domains, let the agents take over, and watch your network compound.</p>
+    <div class="how-grid">
+      <div class="how-step">
+        <div class="how-num">01</div>
+        <h3>Connect Your Sites</h3>
+        <p>Register domains, configure identity and design pillars, and deploy the PubOS renderer. One worker route replaces your entire WordPress stack.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-num">02</div>
+        <h3>Content + Audiences Compound</h3>
+        <p>AI generates articles at scale. Recirculation keeps visitors inside your network. Push and email build owned audiences that grow on autopilot.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-num">03</div>
+        <h3>Revenue Optimizes Itself</h3>
+        <p>Ad waterfalls test automatically. Conversion tracking attributes revenue to sources. Campaign tools scale what works across every site.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="architecture" class="arch-section">
+  <div class="container">
+    <div class="section-label">Architecture</div>
+    <div class="section-title">Edge-native. Zero-origin. Sub-50ms.</div>
+    <p class="section-desc">No servers. No containers. No cold starts. Everything runs at the edge — 300+ locations, automatic failover, infinite scale.</p>
+    <div class="arch-grid">
+      <ul class="arch-list">
+        <li><span class="arch-label">Compute</span><span class="arch-val"><strong>Edge Workers</strong> &mdash; 8 agents, 300+ edge locations, 0ms cold start</span></li>
+        <li><span class="arch-label">Database</span><span class="arch-val"><strong>Edge SQL</strong> &mdash; SQLite at the edge, automatic replication</span></li>
+        <li><span class="arch-label">Storage</span><span class="arch-val"><strong>Object Storage</strong> &mdash; S3-compatible, zero egress fees</span></li>
+        <li><span class="arch-label">Cache</span><span class="arch-val"><strong>Edge KV</strong> &mdash; Global low-latency key-value store</span></li>
+        <li><span class="arch-label">Hosting</span><span class="arch-val"><strong>Edge Pages</strong> &mdash; Dashboard + marketing site</span></li>
+        <li><span class="arch-label">AI</span><span class="arch-val"><strong>AI Engine</strong> &mdash; BYO provider &mdash; content generation, social captions</span></li>
+        <li><span class="arch-label">Email</span><span class="arch-val"><strong>Email Provider</strong> &mdash; BYO provider &mdash; deliverability optimized</span></li>
+        <li><span class="arch-label">Auth</span><span class="arch-val"><strong>Signed Auth</strong> &mdash; HMAC-signed requests, no session tokens to steal</span></li>
+      </ul>
+      <div class="arch-box">
+        <h3>Sample API Surface</h3>
+        <div class="arch-endpoint"><span class="method method-get">GET</span><span class="path">/api/articles</span></div>
+        <div class="arch-endpoint"><span class="method method-post">POST</span><span class="path">/api/generate/bulk</span></div>
+        <div class="arch-endpoint"><span class="method method-get">GET</span><span class="path">/api/campaigns</span></div>
+        <div class="arch-endpoint"><span class="method method-post">POST</span><span class="path">/api/subscribe</span></div>
+        <div class="arch-endpoint"><span class="method method-get">GET</span><span class="path">/api/serve/:zone_id</span></div>
+        <div class="arch-endpoint"><span class="method method-post">POST</span><span class="path">/api/posts</span></div>
+        <div class="arch-endpoint"><span class="method method-get">GET</span><span class="path">/api/site-config/:site/:pillar</span></div>
+        <div class="arch-endpoint"><span class="method method-get">GET</span><span class="path">/api/admin/dashboard</span></div>
+        <div class="arch-endpoint"><span class="method method-post">POST</span><span class="path">/api/site-config/:site/bulk</span></div>
+        <div class="arch-endpoint"><span class="method method-get">GET</span><span class="path">/api/conversions?days=30</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing" class="pricing-section">
+  <div class="container">
+    <div class="section-label">Pricing</div>
+    <div class="section-title">Scale without scaling costs</div>
+    <p class="section-desc">PubOS runs at the edge. Infrastructure cost stays under $5/mo regardless of traffic. You pay for the platform, not the compute.</p>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="tier">Starter</div>
+        <div class="amount">$49<small>/mo</small></div>
+        <p class="desc">For operators running 1-5 sites</p>
+        <ul class="price-features">
+          <li>Up to 5 sites</li>
+          <li>Command Center dashboard</li>
+          <li>Content repository + recirculation</li>
+          <li>Push notifications</li>
+          <li>Email (1K subscribers)</li>
+          <li>Basic revenue reporting</li>
+          <li>Compliance pages (auto-gen)</li>
+        </ul>
+        <a href="/login" class="btn btn-outline">Get Started</a>
+      </div>
+      <div class="price-card featured">
+        <div class="tier" style="color:var(--accent)">Growth</div>
+        <div class="amount">$199<small>/mo</small></div>
+        <p class="desc">For networks scaling to 25 sites</p>
+        <ul class="price-features">
+          <li>Up to 25 sites</li>
+          <li>Everything in Starter</li>
+          <li>AI Content Engine (500 articles/mo)</li>
+          <li>Campaign Manager (email + push)</li>
+          <li>Social syndication (5 platforms)</li>
+          <li>In-house ad server + waterfall</li>
+          <li>Revenue intelligence + attribution</li>
+          <li>Conversion tracking</li>
+        </ul>
+        <a href="/login" class="btn btn-primary">Get Started</a>
+      </div>
+      <div class="price-card">
+        <div class="tier">Network</div>
+        <div class="amount">Custom</div>
+        <p class="desc">For large-scale publisher operations</p>
+        <ul class="price-features">
+          <li>Unlimited sites</li>
+          <li>Everything in Growth</li>
+          <li>Unlimited AI content generation</li>
+          <li>Custom ad waterfall logic</li>
+          <li>White-label dashboard</li>
+          <li>Dedicated infrastructure</li>
+          <li>Full API access</li>
+          <li>Dedicated account manager</li>
+        </ul>
+        <a href="/login" class="btn btn-outline">Contact Us</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <div class="container">
+    <h2>Stop managing sites.<br>Start running a <span class="grad">network</span>.</h2>
+    <p>PubOS is the infrastructure layer between you and your publishers. One platform, every site, fully autonomous.</p>
+    <div class="hero-cta">
+      <a href="/login" class="btn btn-primary btn-lg">Sign In &rarr;</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>&copy; 2026 PubOS. The Publisher Operating System. </p>
+  </div>
+</footer>
+
+<script>
+if ('serviceWorker' in navigator && 'PushManager' in window) {
+  navigator.serviceWorker.register('/push-sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
