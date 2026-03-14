@@ -19,16 +19,22 @@
   if (VALID.indexOf(modalType) === -1) return;
 
   // =============================================
-  // PIXEL INTEGRATION
+  // PIXEL INTEGRATION (delegates to PubOS platform if available)
   // =============================================
   function fireClick1() {
-    console.log('[PUBOS] Click 1 — trxclk — modal loaded:', modalType);
-    // new Image().src = 'https://trxclk.example.com/pixel?click=1&type=' + modalType + '&cb=' + Date.now();
+    if (window.PubOS && window.PubOS.fireClick1) {
+      window.PubOS.fireClick1('modal-' + modalType);
+    } else {
+      console.log('[PUBOS] Click 1 — trxclk — modal loaded:', modalType);
+    }
   }
 
   function fireConversion(data) {
-    console.log('[PUBOS] Click 2 — CONVERSION — modal completed:', modalType, data);
-    // new Image().src = 'https://tj.example.com/conv?click=2&type=' + modalType + '&data=' + encodeURIComponent(JSON.stringify(data)) + '&cb=' + Date.now();
+    if (window.PubOS && window.PubOS.fireConversion) {
+      window.PubOS.fireConversion('modal-' + modalType, data);
+    } else {
+      console.log('[PUBOS] Click 2 — CONVERSION — modal completed:', modalType, data);
+    }
   }
 
   // =============================================
