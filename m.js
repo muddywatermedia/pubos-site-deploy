@@ -150,39 +150,74 @@
   }
 
   // =============================================
-  // MODAL: QUIZ (3-step)
+  // MODAL: QUIZ — QUERY BUILDER
+  // Builds a search query from user answers + page context,
+  // then redirects to a configurable SERP URL.
   // =============================================
+
+  // --- CONFIG: Set your destination SERP URL ---
+  // Use {query} as placeholder for the constructed search query.
+  // Override via: window.PubOS.searchUrl = 'https://your-serp.com/search?q={query}'
+  var SEARCH_URL = (window.PubOS && window.PubOS.searchUrl)
+    || params.get('serp')
+    || 'https://www.google.com/search?q={query}';
+  // Examples:
+  // 'https://search.yahoo.com/search?p={query}'
+  // 'https://www.bing.com/search?q={query}'
+  // 'https://feed.system1.com/search?q={query}&segment=pubos'
+
+  // --- Extract page topic from meta/title ---
+  function getPageTopic() {
+    // Try meta keywords first
+    var metaKw = document.querySelector('meta[name="keywords"]');
+    if (metaKw && metaKw.content) return metaKw.content.split(',')[0].trim();
+    // Try og:title
+    var ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle && ogTitle.content) return ogTitle.content.replace(/\s*[|\-–—].*/g, '').trim();
+    // Fall back to page title, strip site name
+    var title = document.title.replace(/\s*[|\-–—].*$/g, '').trim();
+    // Remove common filler words for cleaner query
+    return title.replace(/^(the|a|an|how to|guide to|top \d+)\s+/i, '').trim() || 'best results';
+  }
+
   function buildQuiz() {
     var layout = makeOverlay();
     var answers = {};
     var step = 1;
+    var pageTopic = getPageTopic();
 
+    // Q1: Category — maps to intent modifier on the page topic
+    // Q2: Buyer stage — qualifies intent (researching vs ready)
+    // Q3: Search modifier — "near me", "best price", etc.
     var steps = [
       {
-        n: 'Step 1 of 3', h: 'What are you searching for?', p: 'We\'ll match you with the most relevant results.',
+        n: 'Step 1 of 3', h: 'What are you looking for?', p: 'We\'ll find the best results for you.',
+        key: 'category',
         opts: [
-          { v: 'shopping', ic: '🛒', l: 'Shopping & Deals', s: 'Products, price comparisons, coupons' },
-          { v: 'services', ic: '🔧', l: 'Services & Providers', s: 'Local pros, quotes, appointments' },
-          { v: 'info', ic: '📚', l: 'Information & Research', s: 'Answers, how-tos, comparisons' },
-          { v: 'entertainment', ic: '🎬', l: 'Entertainment & Media', s: 'Streaming, games, events, tickets' },
+          { v: 'buy',      qmod: 'buy',            ic: '🛒', l: 'Shopping & Deals', s: 'Products, prices, coupons' },
+          { v: 'services', qmod: 'services',        ic: '🔧', l: 'Services & Providers', s: 'Local pros, quotes, appointments' },
+          { v: 'learn',    qmod: 'guide',           ic: '📚', l: 'Information & Research', s: 'Answers, how-tos, comparisons' },
+          { v: 'watch',    qmod: 'streaming watch', ic: '🎬', l: 'Entertainment & Media', s: 'Streaming, games, events, tickets' },
         ]
       },
       {
-        n: 'Step 2 of 3', h: 'How soon do you need this?', p: 'Helps us prioritize your results.',
+        n: 'Step 2 of 3', h: 'Where are you in the process?', p: 'Helps us tailor your results.',
+        key: 'stage',
         opts: [
-          { v: 'now', ic: '⚡', l: 'Right now', s: 'I need results immediately' },
-          { v: 'today', ic: '📅', l: 'Today', s: 'Sometime in the next few hours' },
-          { v: 'week', ic: '🗓️', l: 'This week', s: 'No rush, just exploring' },
-          { v: 'browsing', ic: '👀', l: 'Just browsing', s: 'Seeing what\'s out there' },
+          { v: 'researching', qmod: '',          ic: '🔍', l: 'Just starting', s: 'Learning about my options' },
+          { v: 'comparing',   qmod: 'compare',   ic: '⚖️', l: 'Comparing options', s: 'Narrowing down choices' },
+          { v: 'ready',       qmod: 'best',      ic: '✅', l: 'Ready to decide', s: 'I know what I need' },
+          { v: 'switching',   qmod: 'switch to',  ic: '🔄', l: 'Switching / upgrading', s: 'Looking for something better' },
         ]
       },
       {
         n: 'Step 3 of 3', h: 'What matters most?', p: 'We\'ll rank your results based on this.',
+        key: 'modifier',
         opts: [
-          { v: 'price', ic: '💰', l: 'Best price', s: 'Cheapest options first' },
-          { v: 'quality', ic: '⭐', l: 'Top rated', s: 'Quality over price' },
-          { v: 'nearby', ic: '📍', l: 'Nearest to me', s: 'Local results, close by' },
-          { v: 'popular', ic: '🔥', l: 'Most popular', s: 'What everyone else picks' },
+          { v: 'price',   qmod: 'best price',  ic: '💰', l: 'Best price', s: 'Cheapest options first' },
+          { v: 'quality', qmod: 'top rated',    ic: '⭐', l: 'Top rated', s: 'Quality over price' },
+          { v: 'nearby',  qmod: 'near me',      ic: '📍', l: 'Nearest to me', s: 'Local results, close by' },
+          { v: 'popular', qmod: 'most popular',  ic: '🔥', l: 'Most popular', s: 'What everyone else picks' },
         ]
       }
     ];
@@ -197,14 +232,14 @@
       html += '<div class="pm-p">' + s.p + '</div>';
       html += '<div class="pm-opts" data-step="' + sn + '">';
       s.opts.forEach(function (o) {
-        html += '<button class="pm-opt" data-value="' + o.v + '"><div class="pm-ic">' + o.ic + '</div><div class="pm-lb">' + o.l + '<small>' + o.s + '</small></div><div class="pm-rd"></div></button>';
+        html += '<button class="pm-opt" data-value="' + o.v + '" data-qmod="' + o.qmod + '"><div class="pm-ic">' + o.ic + '</div><div class="pm-lb">' + o.l + '<small>' + o.s + '</small></div><div class="pm-rd"></div></button>';
       });
       html += '</div>';
       html += makeBtn('pmN' + sn, sn < 3 ? 'Continue →' : 'See My Results →');
       html += '</div>';
     });
 
-    html += makeLoading('Finding your best matches...', 'Analyzing results based on your preferences');
+    html += makeLoading('Building your personalized search...', 'Finding the best matches for you');
     layout.sheet.innerHTML += html;
     document.body.appendChild(layout.overlay);
 
@@ -215,6 +250,7 @@
         btn.closest('.pm-opts').querySelectorAll('.pm-opt').forEach(function (b) { b.classList.remove('pm-sel'); });
         btn.classList.add('pm-sel');
         answers['q' + sn] = btn.dataset.value;
+        answers['qmod' + sn] = btn.dataset.qmod;
         activateBtn('pmN' + sn);
       });
     });
@@ -226,14 +262,45 @@
       document.getElementById('pmBar').style.width = ((s - 1) / 3 * 100) + '%';
     }
 
+    // --- Build the search query from answers ---
+    function buildQuery() {
+      var parts = [];
+      // Q3 modifier first (e.g., "best price", "near me", "top rated")
+      if (answers.qmod3) parts.push(answers.qmod3);
+      // Page topic is the core query
+      parts.push(pageTopic);
+      // Q1 category intent (e.g., "buy", "services", "guide")
+      if (answers.qmod1) parts.push(answers.qmod1);
+      // Q2 stage modifier (e.g., "compare", "best", "switch to") — only if non-empty
+      if (answers.qmod2) parts.push(answers.qmod2);
+      return parts.join(' ').replace(/\s+/g, ' ').trim();
+    }
+
     document.getElementById('pmN1').addEventListener('click', function () { goTo(2); });
     document.getElementById('pmN2').addEventListener('click', function () { goTo(3); });
     document.getElementById('pmN3').addEventListener('click', function () {
-      fireConversion(answers);
+      var query = buildQuery();
+      var convData = {
+        category: answers.q1,
+        stage: answers.q2,
+        modifier: answers.q3,
+        query: query,
+        pageTopic: pageTopic,
+        redirectUrl: SEARCH_URL.replace('{query}', encodeURIComponent(query))
+      };
+
+      fireConversion(convData);
       document.getElementById('pmS3').classList.remove('pm-on');
       document.getElementById('pmLoading').classList.add('pm-show');
       document.getElementById('pmBar').style.width = '100%';
-      setTimeout(function () { dismiss(layout.overlay); }, 1600);
+
+      // Redirect to SERP after brief loading animation
+      var redirectUrl = SEARCH_URL.replace('{query}', encodeURIComponent(query));
+      console.log('[PubOS] Query built: "' + query + '" → ' + redirectUrl);
+
+      setTimeout(function () {
+        window.location.href = redirectUrl;
+      }, 1800);
     });
 
     return layout.overlay;
