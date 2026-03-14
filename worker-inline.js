@@ -1,0 +1,761 @@
+const HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Searching.net — Find Exactly What You're Looking For</title>
+  <meta name="description" content="Answer a few quick questions and we'll match you with the best results for your search.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f8fafc;
+      --bg-card: #ffffff;
+      --text: #0f172a;
+      --text-2: #475569;
+      --text-3: #94a3b8;
+      --accent: #2563eb;
+      --accent-light: #3b82f6;
+      --accent-glow: rgba(37, 99, 235, 0.12);
+      --accent-soft: rgba(37, 99, 235, 0.06);
+      --green: #16a34a;
+      --border: #e2e8f0;
+    }
+    html { height: 100%; -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100%;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+    }
+
+    /* ========== HEADER ========== */
+    .header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header-logo { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.03em; }
+    .header-logo span { color: var(--accent); }
+    .header-right { font-size: 0.7rem; color: var(--text-3); }
+
+    /* ========== MODAL OVERLAY ========== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+    }
+    .modal-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .modal-sheet {
+      background: var(--bg-card);
+      width: 100%;
+      max-width: 480px;
+      max-height: 92vh;
+      border-radius: 20px 20px 0 0;
+      padding: 1.25rem 1.25rem 2rem;
+      overflow-y: auto;
+      transform: translateY(0);
+      transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+      -webkit-overflow-scrolling: touch;
+    }
+    .modal-overlay.hidden .modal-sheet {
+      transform: translateY(100%);
+    }
+
+    /* Drag handle */
+    .modal-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 4px;
+      margin: 0 auto 1.25rem;
+    }
+
+    /* Modal logo */
+    .modal-logo { text-align: center; margin-bottom: 1.25rem; }
+    .modal-logo-text { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.03em; }
+    .modal-logo-text span { color: var(--accent); }
+    .modal-logo-sub { font-size: 0.7rem; color: var(--text-3); margin-top: 0.1rem; letter-spacing: 0.02em; }
+
+    /* Progress bar */
+    .progress-track {
+      height: 3px;
+      background: var(--border);
+      border-radius: 3px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-light));
+      border-radius: 3px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    /* Step counter */
+    .step-counter {
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Question */
+    .question-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+      margin-bottom: 0.3rem;
+    }
+    .question-desc {
+      font-size: 0.82rem;
+      color: var(--text-2);
+      line-height: 1.5;
+      margin-bottom: 1.25rem;
+    }
+
+    /* Options */
+    .options { display: flex; flex-direction: column; gap: 0.6rem; }
+    .option-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.8rem 1rem;
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: left;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text);
+      width: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .option-btn:active {
+      transform: scale(0.98);
+    }
+    .option-btn.selected {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .option-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--accent-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .option-label { flex: 1; }
+    .option-label .sub { font-size: 0.72rem; color: var(--text-3); font-weight: 400; margin-top: 0.1rem; }
+
+    .radio-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .option-btn.selected .radio-dot { border-color: var(--accent); }
+    .radio-dot::after {
+      content: '';
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent);
+      transform: scale(0);
+      transition: transform 0.15s;
+    }
+    .option-btn.selected .radio-dot::after { transform: scale(1); }
+
+    /* Next button */
+    .next-btn {
+      display: block;
+      width: 100%;
+      padding: 0.85rem;
+      margin-top: 1.25rem;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      opacity: 0.35;
+      pointer-events: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .next-btn.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .next-btn.active:active { transform: scale(0.98); }
+
+    /* Loading */
+    .loading-screen { display: none; text-align: center; padding: 2.5rem 0.5rem; }
+    .loading-screen.show { display: block; }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 1.25rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-screen h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .loading-screen p { font-size: 0.82rem; color: var(--text-2); }
+
+    .step { display: none; }
+    .step.active { display: block; }
+
+    /* ========== RESULTS PAGE (behind modal) ========== */
+    .results-wrap {
+      padding: 1.25rem 1rem;
+      max-width: 900px;
+      margin: 0 auto;
+      opacity: 0.15;
+      filter: blur(2px);
+      transition: all 0.5s ease;
+    }
+    .results-wrap.revealed {
+      opacity: 1;
+      filter: none;
+    }
+
+    .results-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.7rem;
+      background: rgba(22, 163, 74, 0.08);
+      border: 1px solid rgba(22, 163, 74, 0.2);
+      border-radius: 100px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--green);
+      margin-bottom: 0.6rem;
+    }
+    .results-badge .dot { width: 5px; height: 5px; background: var(--green); border-radius: 50%; }
+
+    .results-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.25rem;
+    }
+    .results-desc {
+      font-size: 0.85rem;
+      color: var(--text-2);
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Section labels */
+    .reco-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+    .reco-label-left {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .reco-label-right { font-size: 0.65rem; color: var(--text-3); }
+
+    /* Card grid — mobile first: single column */
+    .reco-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+    .reco-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: row;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .reco-card:active { transform: scale(0.98); }
+    .reco-thumb {
+      width: 110px;
+      min-height: 100px;
+      background-size: cover;
+      background-position: center;
+      background-color: #e2e8f0;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .reco-thumb-badge {
+      position: absolute;
+      top: 0.4rem;
+      left: 0.4rem;
+      padding: 0.15rem 0.45rem;
+      background: rgba(0,0,0,0.65);
+      color: white;
+      font-size: 0.55rem;
+      font-weight: 600;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .reco-body {
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      flex: 1;
+      min-width: 0;
+    }
+    .reco-body h3 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 0.2rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .reco-body p {
+      font-size: 0.72rem;
+      color: var(--text-2);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .reco-source {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 0.5rem;
+      font-size: 0.6rem;
+      color: var(--text-3);
+    }
+    .reco-source-name { font-weight: 600; }
+
+    /* Footer */
+    .footer-bar {
+      text-align: center;
+      padding: 1.5rem 1rem;
+      font-size: 0.68rem;
+      color: var(--text-3);
+      border-top: 1px solid var(--border);
+    }
+    .footer-bar a { color: var(--text-3); text-decoration: underline; }
+
+    /* ========== TABLET+ ========== */
+    @media (min-width: 640px) {
+      .modal-sheet {
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        max-height: 85vh;
+      }
+      .modal-overlay {
+        align-items: center;
+      }
+      .modal-overlay.hidden .modal-sheet {
+        transform: translateY(40px);
+      }
+      .modal-handle { display: none; }
+      .header { padding: 0.85rem 1.5rem; }
+      .header-logo { font-size: 1.25rem; }
+      .results-wrap { padding: 2rem 1.5rem; }
+      .results-title { font-size: 1.4rem; }
+      .reco-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+      }
+      .reco-card { flex-direction: column; }
+      .reco-thumb { width: 100%; min-height: 140px; }
+      .reco-body { padding: 0.85rem; }
+      .reco-body h3 { font-size: 0.9rem; }
+    }
+
+    /* ========== DESKTOP ========== */
+    @media (min-width: 1024px) {
+      .modal-sheet {
+        padding: 2rem;
+        max-width: 520px;
+      }
+      .reco-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-logo">Searching<span>.net</span></div>
+    <div class="header-right">Personalized results</div>
+  </div>
+
+  <!-- RESULTS (behind the modal — blurred until quiz completes) -->
+  <div class="results-wrap" id="resultsWrap">
+    <div class="results-badge"><span class="dot"></span> Results ready</div>
+    <div class="results-title" id="resultsTitle">We found great matches for you</div>
+    <div class="results-desc" id="resultsDesc">Based on your preferences, here are our top picks. Explore the options below to find exactly what you need.</div>
+
+    <div class="reco-label">
+      <div class="reco-label-left">Recommended for you</div>
+      <div class="reco-label-right">Searching.net</div>
+    </div>
+    <div class="reco-grid" id="recoGrid1"></div>
+
+    <div class="reco-label">
+      <div class="reco-label-left">You might also like</div>
+    </div>
+    <div class="reco-grid" id="recoGrid2"></div>
+  </div>
+
+  <div class="footer-bar">
+    <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a> · © 2026 Searching.net
+  </div>
+
+  <!-- QUIZ MODAL OVERLAY -->
+  <div class="modal-overlay" id="quizModal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+
+      <div class="modal-logo">
+        <div class="modal-logo-text">Searching<span>.net</span></div>
+        <div class="modal-logo-sub">Find what you're looking for</div>
+      </div>
+
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+
+      <!-- Step 1 -->
+      <div class="step active" id="step1">
+        <div class="step-counter">Step 1 of 3</div>
+        <div class="question-title">What are you searching for?</div>
+        <div class="question-desc">We'll match you with the most relevant results.</div>
+        <div class="options" data-step="1">
+          <button class="option-btn" data-value="shopping">
+            <div class="option-icon">🛒</div>
+            <div class="option-label">Shopping & Deals<div class="sub">Products, price comparisons, coupons</div></div>
+            <div class="radio-dot"></div>
+          </button>
+          <button class="option-btn" data-value="services">
+            <div class="option-icon">🔧</div>
+            <div class="option-label">Services & Providers<div class="sub">Local pros, quotes, appointments</div></div>
+            <div class="radio-dot"></div>
+          </button>
+          <button class="option-btn" data-value="info">
+            <div class="option-icon">📚</div>
+            <div class="option-label">Information & Research<div class="sub">Answers, how-tos, comparisons</div></div>
+            <div class="radio-dot"></div>
+          </button>
+          <button class="option-btn" data-value="entertainment">
+            <div class="option-icon">🎬</div>
+            <div class="option-label">Entertainment & Media<div class="sub">Streaming, games, events, tickets</div></div>
+            <div class="radio-dot"></div>
+          </button>
+        </div>
+        <button class="next-btn" id="next1">Continue →</button>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="step" id="step2">
+        <div class="step-counter">Step 2 of 3</div>
+        <div class="question-title">How soon do you need this?</div>
+        <div class="question-desc">Helps us prioritize your results.</div>
+        <div class="options" data-step="2">
+          <button class="option-btn" data-value="now">
+            <div class="option-icon">⚡</div>
+            <div class="option-label">Right now<div class="sub">I need results immediately</div></div>
+            <div class="radio-dot"></div>
+          </button>
+          <button class="option-btn" data-value="today">
+            <div class="option-icon">📅</div>
+            <div class="option-label">Today<div class="sub">Sometime in the next few hours</div></div>
+            <div class="radio-dot"></div>
+          </button>
+          <button class="option-btn" data-value="week">
+            <div class="option-icon">🗓️</div>
+            <div class="option-label">This week<div class="sub">No rush, just exploring</div></div>
+            <div class="radio-dot"></div>
+          </button>
+          <button class="option-btn" data-value="browsing">
+            <div class="option-icon">👀</div>
+            <div class="option-label">Just browsing<div class="sub">Seeing what's out there</div></div>
+            <div class="radio-dot"></div>
+          </button>
+        </div>
+        <button class="next-btn" id="next2">Continue →</button>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="step" id="step3">
+        <div class="step-counter">Step 3 of 3</div>
+        <div class="question-title">What matters most?</div>
+        <div class="question-desc">We'll rank your results based on this.</div>
+        <div class="options" data-step="3">
+          <button class="option-btn" data-value="price">
+            <div class="option-icon">💰</div>
+            <div class="option-label">Best price<div class="sub">Cheapest options first</div></div>
+            <div class="radio-dot"></div>
+          </button>
+          <button class="option-btn" data-value="quality">
+            <div class="option-icon">⭐</div>
+            <div class="option-label">Top rated<div class="sub">Quality over price</div></div>
+            <div class="radio-dot"></div>
+          </button>
+          <button class="option-btn" data-value="nearby">
+            <div class="option-icon">📍</div>
+            <div class="option-label">Nearest to me<div class="sub">Local results, close by</div></div>
+            <div class="radio-dot"></div>
+          </button>
+          <button class="option-btn" data-value="popular">
+            <div class="option-icon">🔥</div>
+            <div class="option-label">Most popular<div class="sub">What everyone else picks</div></div>
+            <div class="radio-dot"></div>
+          </button>
+        </div>
+        <button class="next-btn" id="next3">See My Results →</button>
+      </div>
+
+      <!-- Loading -->
+      <div class="loading-screen" id="loadingScreen">
+        <div class="spinner"></div>
+        <h3>Finding your best matches...</h3>
+        <p>Analyzing results based on your preferences</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================
+    // PIXEL INTEGRATION
+    // ============================================
+    // CLICK 1 (trxclk): fires on page load
+    function fireClick1() {
+      console.log('[PIXEL] Click 1 — trxclk — page loaded');
+      // new Image().src = 'https://trxclk.example.com/pixel?click=1&cb=' + Date.now();
+    }
+
+    // CLICK 2 (conversion): fires on quiz completion
+    function fireConversion(answers) {
+      console.log('[PIXEL] Click 2 — CONVERSION — quiz completed', answers);
+      // new Image().src = 'https://tj.example.com/conv?click=2&cat=' + answers.q1 + '&cb=' + Date.now();
+    }
+
+    // ============================================
+    // RECO CARD DATA
+    // ============================================
+    const SEARCH_PARTNER_BASE = '#'; // Replace with partner URLs
+
+    const recoData = {
+      shopping: {
+        title: 'Top Shopping Deals Matched to You',
+        primary: [
+          { title: 'Compare Prices on Top Products', desc: 'Find the lowest prices across major retailers — updated in real time.', source: 'DealFinder', badge: 'Popular', img: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=240&fit=crop' },
+          { title: 'Exclusive Coupon Codes & Discounts', desc: 'Verified coupons for thousands of stores. Save up to 70% today.', source: 'CouponHub', badge: 'Trending', img: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400&h=240&fit=crop' },
+          { title: 'Best Deals of the Week', desc: 'Curated picks from top brands at the lowest prices.', source: 'BargainWatch', badge: 'New', img: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&h=240&fit=crop' },
+        ],
+        secondary: [
+          { title: 'Cashback Offers on Electronics', desc: 'Earn cash back on your next tech purchase.', source: 'TechSave', img: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=400&h=240&fit=crop' },
+          { title: 'Flash Sales Happening Now', desc: 'Limited-time deals you don\\'t want to miss.', source: 'FlashDeals', img: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=400&h=240&fit=crop' },
+          { title: 'Price Drop Alerts', desc: 'Get notified when prices fall on items you want.', source: 'PriceTrack', img: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=240&fit=crop' },
+        ]
+      },
+      services: {
+        title: 'Top Service Providers Near You',
+        primary: [
+          { title: 'Find Local Pros in Minutes', desc: 'Compare ratings, prices, and availability for trusted providers.', source: 'ProFinder', badge: 'Top Rated', img: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=240&fit=crop' },
+          { title: 'Get Free Quotes Today', desc: 'Request quotes from up to 5 local pros — free, no obligation.', source: 'QuoteMatch', badge: 'Popular', img: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&h=240&fit=crop' },
+          { title: 'Highest Rated in Your Area', desc: 'See who your neighbors trust most.', source: 'AreaReviews', badge: 'Verified', img: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=240&fit=crop' },
+        ],
+        secondary: [
+          { title: 'Emergency Services 24/7', desc: 'Plumbing, electrical, locksmith — get help now.', source: 'QuickHelp', img: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400&h=240&fit=crop' },
+          { title: 'Home Improvement Contractors', desc: 'Compare contractors for your next project.', source: 'BuildRight', img: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&h=240&fit=crop' },
+          { title: 'Moving & Storage Services', desc: 'Get organized quotes from top-rated movers.', source: 'MoveEasy', img: 'https://images.unsplash.com/photo-1600518464441-9154a4dea21b?w=400&h=240&fit=crop' },
+        ]
+      },
+      info: {
+        title: 'Research Results Matched to You',
+        primary: [
+          { title: 'Expert Guides & How-Tos', desc: 'Step-by-step guides from subject matter experts.', source: 'LearnHub', badge: 'Editor\\'s Pick', img: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400&h=240&fit=crop' },
+          { title: 'Side-by-Side Comparisons', desc: 'Compare features, prices, and reviews.', source: 'CompareAll', badge: 'Popular', img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=240&fit=crop' },
+          { title: 'Latest News & Updates', desc: 'Stay informed on topics you care about.', source: 'NewsWire', badge: 'Live', img: 'https://images.unsplash.com/photo-1504711434969-e33886168d5c?w=400&h=240&fit=crop' },
+        ],
+        secondary: [
+          { title: 'Top Rated Reviews', desc: 'Honest, unbiased reviews from real users.', source: 'TrustReview', img: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=240&fit=crop' },
+          { title: 'Video Tutorials', desc: 'Learn visually with expert-led content.', source: 'SkillStream', img: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=240&fit=crop' },
+          { title: 'Community Q&A', desc: 'Real answers from people who\\'ve been there.', source: 'AskPeople', img: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=400&h=240&fit=crop' },
+        ]
+      },
+      entertainment: {
+        title: 'Entertainment Picks for You',
+        primary: [
+          { title: 'Streaming Services Compared', desc: 'Find the best platform for your habits and budget.', source: 'StreamPick', badge: 'Popular', img: 'https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=400&h=240&fit=crop' },
+          { title: 'Events & Tickets Near You', desc: 'Concerts, sports, theater — find what\\'s happening.', source: 'EventSeek', badge: 'Live', img: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=400&h=240&fit=crop' },
+          { title: 'Top Games & Apps This Week', desc: 'What\\'s trending in gaming and apps right now.', source: 'GameRank', badge: 'New', img: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400&h=240&fit=crop' },
+        ],
+        secondary: [
+          { title: 'Free Streaming Options', desc: 'Watch movies and shows without a subscription.', source: 'FreeWatch', img: 'https://images.unsplash.com/photo-1574375927938-d5a98e8d7e28?w=400&h=240&fit=crop' },
+          { title: 'Music Discovery', desc: 'Find your next favorite artist or playlist.', source: 'SoundFind', img: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=240&fit=crop' },
+          { title: 'Book Recommendations', desc: 'Top reads based on what you like.', source: 'ReadNext', img: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=240&fit=crop' },
+        ]
+      }
+    };
+
+    // ============================================
+    // QUIZ LOGIC
+    // ============================================
+    const answers = {};
+    let currentStep = 1;
+
+    // Fire click 1 on load
+    fireClick1();
+
+    // Pre-render default results behind modal (blurred)
+    renderResults('shopping');
+
+    // Option selection
+    document.querySelectorAll('.option-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const step = btn.closest('.options').dataset.step;
+        btn.closest('.options').querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        answers['q' + step] = btn.dataset.value;
+        document.getElementById('next' + step).classList.add('active');
+      });
+    });
+
+    document.getElementById('next1').addEventListener('click', () => goToStep(2));
+    document.getElementById('next2').addEventListener('click', () => goToStep(3));
+    document.getElementById('next3').addEventListener('click', () => completeQuiz());
+
+    function goToStep(step) {
+      document.getElementById('step' + currentStep).classList.remove('active');
+      document.getElementById('step' + step).classList.add('active');
+      currentStep = step;
+      document.getElementById('progressFill').style.width = ((step - 1) / 3 * 100) + '%';
+    }
+
+    function completeQuiz() {
+      // FIRE CONVERSION PIXEL (Click 2) — THE REWARDED ACTION
+      fireConversion(answers);
+
+      document.getElementById('step3').classList.remove('active');
+      document.getElementById('loadingScreen').classList.add('show');
+      document.getElementById('progressFill').style.width = '100%';
+
+      // Re-render results based on actual answers
+      renderResults(answers.q1 || 'shopping');
+
+      // Dismiss modal after loading animation
+      setTimeout(() => {
+        document.getElementById('quizModal').classList.add('hidden');
+        document.getElementById('resultsWrap').classList.add('revealed');
+      }, 1600);
+    }
+
+    function renderResults(category) {
+      const data = recoData[category] || recoData.shopping;
+      document.getElementById('resultsTitle').textContent = data.title;
+
+      const urgencyText = { now: 'time-sensitive', today: "today's top", week: "this week's best", browsing: 'trending' };
+      const priorityText = { price: 'sorted by best price', quality: 'sorted by highest rating', nearby: 'prioritized by proximity', popular: 'ranked by popularity' };
+      document.getElementById('resultsDesc').textContent =
+        \`Here are your \${urgencyText[answers.q2] || 'personalized'} results, \${priorityText[answers.q3] || 'ranked for you'}. Tap any result to explore.\`;
+
+      renderCards('recoGrid1', data.primary);
+      renderCards('recoGrid2', data.secondary);
+    }
+
+    function renderCards(id, cards) {
+      document.getElementById(id).innerHTML = cards.map((c, i) => \`
+        <a class="reco-card" href="\${SEARCH_PARTNER_BASE}" target="_blank" rel="noopener">
+          <div class="reco-thumb" style="background-image:url('\${c.img}')">
+            \${c.badge ? \`<div class="reco-thumb-badge">\${c.badge}</div>\` : ''}
+          </div>
+          <div class="reco-body">
+            <h3>\${c.title}</h3>
+            <p>\${c.desc}</p>
+            <div class="reco-source">
+              <span class="reco-source-name">\${c.source}</span>
+              <span>Sponsored</span>
+            </div>
+          </div>
+        </a>
+      \`).join('');
+    }
+  </script>
+</body>
+</html>
+`;
+
+export default {
+  async fetch(request) {
+    const url = new URL(request.url);
+    // Serve the quiz page for root and index.html
+    if (url.pathname === '/' || url.pathname === '/index.html') {
+      return new Response(HTML, {
+        headers: {
+          'content-type': 'text/html;charset=UTF-8',
+          'cache-control': 'no-cache, no-store, must-revalidate',
+        },
+      });
+    }
+    // 404 for everything else
+    return new Response('Not Found', { status: 404 });
+  },
+};
